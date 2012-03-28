@@ -11,7 +11,6 @@ Const FIRSTDATAROW = 6        ' rows above this row don't contain address data
 
 ' holds cache of strings submitted to geocoder during this session along with results
 ' to ensure that duplicate strings aren't submitted
-' TODO: make this cache persist across sessions
 Dim geocodeResults As New Collection
 
 
@@ -274,9 +273,6 @@ End Function
 
 
 
-
-
-
 Function yahooAddressLookup(street As String, city As String, state As String, zip As String) As String
     ' perform RESTian lookup on Yahoo
     Dim marshalledResult As String
@@ -308,7 +304,7 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     zip = trim(zip)
     
     URL = "http://where.yahooapis.com/geocode?q=" & URLEncode(street & "," & city & " " & state & " " & zip, True) & "&flags=C&appid=" & yahoo
-    MsgBox (URL)
+    
     'Create Http object
     If IsEmpty(http) Then Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
@@ -319,7 +315,7 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     'Get response data As a string
         
     response = http.responseText
-    MsgBox (response)
+
     ' capture the latitude by regex matching the values in the tags <geo:lat> and <geo:long>
     lat = RegExMatch(response, "<latitude>([\.\-0-9]+)</latitude>")
     lng = RegExMatch(response, "<longitude>([\.\-0-9]+)</longitude>")
@@ -340,83 +336,10 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     geocodeResults(addr) = lat & "," & lng
 End Function
 
-
-
-Function geocoderAddressLookup(addr As String) As String
-    ' perform RESTian lookup on geocoder.us
-    Dim marshalledResult As String
-    Dim usernm As String
-    Dim passwd As String
-    Dim response As String
-    Dim result As String
-    
-    ' marshal the results of this very time consuming function
-    ' see if we've already looked up this address
-    ' turn error handling off
-    On Error Resume Next
-    ' lookup the result in the collection
-    ' an error will be raised if the value is not found
-    marshalledResult = geocodeResults(addr)
-    If marshalledResult <> "" Then
-        ' if a value is found then return the result
-        geocodeAddressLookup = marshalledResult
-        Exit Function
-    End If
-    ' turn error handling back on
-    On Error GoTo 0
-    
-    Application.StatusBar = "Looking for " & addr
-    
-    usernm = trim(CStr([geocoderUsername]))
-    passwd = trim(CStr([geocoderPassword]))
-    URL = "http://geocoder.us/member/service/rest/geocode?address=" & addr
-    
-    'Create Http object
-    If IsEmpty(http) Then Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
-    
-    'Send request To URL
-    http.Open "GET", URL
-    
-    http.setcredentials usernm, passwd, 0
-    http.send
-    'Get response data As a string
-        
-    response = http.responseText
-    
-    ' capture the latitude by regex matching the values in the tags <geo:lat> and <geo:long>
-    lat = RegExMatch(response, "<geo:lat>(.+)</geo:lat>")
-    lng = RegExMatch(response, "<geo:long>(.+)</geo:long>")
-    
-    ' return a comma delimtied string
-    ' if values not found, this will return ","
-    geocoderAddressLookup = lat & "," & lng & ","
-    
-    Beep
-    
-    
-    ' store the result in the cache collection
-    '
-    ' turn off error handling with "On Error Resume Next"
-    ' an error will be raised if you try to store to an address already in the cache
-    ' we can ignore this error
-    On Error Resume Next
-    ' store the result
-    geocodeResults(addr) = lat & "," & lng
-End Function
-
-
-
-
-
 ' wraps string with a tag
 Function tag(xmltag As String, val As String) As String
     tag = "<" & xmltag & ">" & val & "</" & xmltag & ">" & vbCrLf
 End Function
-
-
-
-
-
 
 
 ' basic distance function for latitude/longitude
@@ -430,7 +353,6 @@ Public Function latLongDistance(lat1 As Double, long1 As Double, lat2 As Double,
 End Function
 
 
-
 Private Function max(a, b):
     If a > b Then
         max = a
@@ -438,7 +360,6 @@ Private Function max(a, b):
         max = b
     End If
 End Function
-
 
 
 ' locate the last row containing address data
