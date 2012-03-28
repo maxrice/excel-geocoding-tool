@@ -307,8 +307,8 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     state = trim(state)
     zip = trim(zip)
     
-    URL = URLEncode("http://where.yahooapis.com/geocode?" & "street=" & street & "&city=" & city & "&state=" & state & "&zip=" & zip & "&appid=" & yahoo)
-    
+    URL = "http://where.yahooapis.com/geocode?q=" & URLEncode(street & "," & city & " " & state & " " & zip, True) & "&flags=C&appid=" & yahoo
+    MsgBox (URL)
     'Create Http object
     If IsEmpty(http) Then Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
@@ -319,7 +319,7 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     'Get response data As a string
         
     response = http.responseText
-    
+    MsgBox (response)
     ' capture the latitude by regex matching the values in the tags <geo:lat> and <geo:long>
     lat = RegExMatch(response, "<latitude>([\.\-0-9]+)</latitude>")
     lng = RegExMatch(response, "<longitude>([\.\-0-9]+)</longitude>")
@@ -329,7 +329,6 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     ' if values not found, this will return ","
     yahooAddressLookup = lat & "," & lng & "," & precision
     
-    If [BeepOn] Then Beep
     
     ' store the result in the cache collection
     '

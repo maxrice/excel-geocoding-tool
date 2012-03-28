@@ -1,48 +1,42 @@
 Attribute VB_Name = "mURLEncoding"
-'**************************************
-' Name: URLEncode Function
-' Description:Encodes a string to create legally formatted
-' QueryString for URL. This function is more flexible
-' than the IIS Server.Encode function because you can
-' pass in the WHOLE URL and only the QueryString data
-' will be converted. IIS strangely converts EVERYTHING
-'(ie "http://" becomes "http%3A%2F%2F").
-' By: Markus Diersbock
-'
-' Inputs:sRawURL - String to Encode
-'
-' Returns:Encoded String
-'
-'This code is copyrighted and has' limited warranties.Please see http://www.Planet-Source-Code.com/vb/scripts/ShowCode.asp?txtCodeId=43806&lngWId=1'for details.'**************************************
+'From http://stackoverflow.com/questions/218181/how-can-i-url-encode-a-string-in-excel-vba
+'with edits for error catching
 
-Public Function URLEncode(sRawURL As String) As String
+Public Function URLEncode( _
+   StringVal As String, _
+   Optional SpaceAsPlus As Boolean = False _
+) As String
 On Error GoTo Catch
-Dim iLoop As Integer
-Dim sRtn As String
-Dim sTmp As String
-Const sValidChars = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:/.?=_-$(){}~&"
-If Len(sRawURL) > 0 Then
-' Loop through each char
-For iLoop = 1 To Len(sRawURL)
-sTmp = Mid(sRawURL, iLoop, 1)
-If InStr(1, sValidChars, sTmp, vbBinaryCompare) = 0 Then
-' If not ValidChar, convert to HEX and prefix with %
-sTmp = Hex(Asc(sTmp))
-If sTmp = "20" Then
-sTmp = "+"
-ElseIf Len(sTmp) = 1 Then
-sTmp = "%0" & sTmp
-Else
-sTmp = "%" & sTmp
-End If
-End If
-sRtn = sRtn & sTmp
-Next iLoop
-URLEncode = sRtn
-End If
+
+  Dim StringLen As Long: StringLen = Len(StringVal)
+
+  If StringLen > 0 Then
+    ReDim result(StringLen) As String
+    Dim i As Long, CharCode As Integer
+    Dim Char As String, Space As String
+
+    If SpaceAsPlus Then Space = "+" Else Space = "%20"
+
+    For i = 1 To StringLen
+      Char = Mid$(StringVal, i, 1)
+      CharCode = Asc(Char)
+      Select Case CharCode
+        Case 97 To 122, 65 To 90, 48 To 57, 45, 46, 95, 126
+          result(i) = Char
+        Case 32
+          result(i) = Space
+        Case 0 To 15
+          result(i) = "%0" & Hex(CharCode)
+        Case Else
+          result(i) = "%" & Hex(CharCode)
+      End Select
+    Next i
+    URLEncode = Join(result, "")
+  End If
 Finally:
 Exit Function
 Catch:
 URLEncode = ""
 Resume Finally
 End Function
+
