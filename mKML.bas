@@ -112,8 +112,6 @@ Sub OutputKML()
     Print #1, EndFolder
     Print #1, EndKML
     Close #1
-    
-    Shell (CStr([GoogleEarthExecutableLocation]) & " " & sFileName)
 End Sub
 
 
