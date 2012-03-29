@@ -36,6 +36,7 @@ Dim geocodeResults As New Collection
 ' submit selected rows to the geocoder
 Sub geocodeSelectedRows()
     Dim r
+    Call ProxyReload
     If [GeocoderToUse] = "Yahoo" Then
         If [yahooid] <> "" Then
             For Each r In Selection.rows()
@@ -71,7 +72,13 @@ End Sub
 
 Sub geocodeAllRows()
     Dim r As Integer
+    Call ProxyReload
     If [GeocoderToUse] = "Yahoo" Then
+        Range("A13:C65536").Select
+        Selection.ClearContents
+        Range("J13:j65536").Select
+        Selection.ClearContents
+        Cells(FIRSTDATAROW, LATITUDECOL).Select
         If [yahooid] <> "" Then
             For r = FIRSTDATAROW To LastDataRow()
                 geocodeRow (r)
