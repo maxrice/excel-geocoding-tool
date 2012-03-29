@@ -2,12 +2,8 @@ Attribute VB_Name = "mGeoCode"
 Const LATITUDECOL = 1         ' column to put longitude into
 Const LONGITUDECOL = 2        ' column to put latitude into
 Const PRECISIONCOL = 3
-Const STREETCOL = 4          ' column to find street
-Const CITYCOL = 5            ' column to find city
-Const STATECOL = 6           ' column to find state
-Const ZIPCOL = 7             ' column to find zipcode data
+Const LOCATIONCOL = 4
 Const FIRSTDATAROW = 6        ' rows above this row don't contain address data
-
 
 ' holds cache of strings submitted to geocoder during this session along with results
 ' to ensure that duplicate strings aren't submitted
@@ -46,18 +42,8 @@ Sub geocodeSelectedRows()
         Else:
             MsgBox "Please enter a Yahoo Id for geocoding"
         End If
-    Else:
-        If (trim(CStr([geocoderPassword])) <> "" And trim(CStr([geocoderPassword])) <> "") Then
-            For Each r In Selection.rows()
-                If r.Row() >= FIRSTDATAROW Then geocodeRow (r.Row())
-            Next r
-            Application.StatusBar = False
-        Else
-            MsgBox "Please enter a username and password at geocoder.us on the Settings and Instructions page."
-        End If
     End If
 End Sub
-
 
 
 Sub geocodeAllRows()
@@ -71,47 +57,31 @@ Sub geocodeAllRows()
         Else:
             MsgBox "Please enter a Yahoo Id for geocoding"
         End If
-    Else:
-        If (trim(CStr([geocoderPassword])) <> "" And trim(CStr([geocoderPassword])) <> "") Then
-            For r = FIRSTDATAROW To LastDataRow()
-                geocodeRow (r)
-            Next r
-            Application.StatusBar = False
-        Else
-            MsgBox "Please enter a username and password at geocoder.us on the Settings and Instructions page."
-        End If
-    End If
 End Sub
-
-
 
 ' geocode a single row of data
 Sub geocodeRow(r As Integer)
-    Dim addr As String
     Dim resultstr As String
     Dim resultarray
     
     Application.StatusBar = "Geocoding row: " & r
     
-    ' requires street address and a blank latitude to continue
-    
     ' can't geocode if no address data
     ' nonblank latitude means we've already geocoded this row
-    If Cells(r, STREETCOL) & Cells(r, CITYCOL) & Cells(r, STATECOL) & Cells(r, ZIPCOL) <> "" And Cells(r, LATITUDECOL) = "" Then
+    If Cells(r, LOCATIONCOL) <> "" And Cells(r, LATITUDECOL) = "" Then
     
     
         ' pass the street, city, state, and zip to the function geocode
         ' geocode returns a string containing the results in comma delimited format
         ' this is crude, but works
         ' CStr casts (converts) a value to a string
-        resultstr = geocode(CStr(Cells(r, STREETCOL)), CStr(Cells(r, CITYCOL)), CStr(Cells(r, STATECOL)), CStr(Cells(r, ZIPCOL)))
+        resultstr = geocode(CStr(Cells(r, LOCATIONCOL)))
         
-        ' parse the results
+        ' parse the results, if lat/long/precision is blank, consider it not found
         resultarray = Split(resultstr, ",")
         If resultarray(0) = "" Then resultarray(0) = "not found"
         If resultarray(1) = "" Then resultarray(1) = "not found"
         If resultarray(2) = "" And resultarray(0) = "not found" Then resultarray(2) = "not found"
-        'If resultarray(2) = "" Then resultarray(2) = "address"
         
         ' store the results
         Cells(r, LATITUDECOL) = resultarray(0)
@@ -119,56 +89,6 @@ Sub geocodeRow(r As Integer)
         Cells(r, PRECISIONCOL) = resultarray(2)
     End If
 End Sub
-
-
-
-' normalization function for street addresses
-' removes apartment numbers, suite numbers that cause problems for geocoder.us
-Function geocodeCleanStreet(street As String) As String
-    street = LCase(street)
-    street = trimstr(street, "#")
-    street = trimstr(street, " apartment ")
-    street = trimstr(street, " apt ")
-    street = trimstr(street, " apt ")
-    street = trimstr(street, " lot ")
-    street = trimstr(street, " unit ")
-    street = trimstr(street, " suite ")
-    street = trimstr(street, " ste ")
-    street = trimstr(street, " trlr ")
-    
-    geocodeCleanStreet = street
-End Function
-
-
-' removed invalid characters from address
-Function geocodeNormalizeAddress(addr As String) As String
-    ' normalize address and prepare to pass to geocoder.us
-    addr = LCase(addr)
-    addr = Replace(addr, "-", " ")
-    addr = Replace(addr, ".", " ")
-    addr = Replace(addr, "   ", " ")
-    addr = Replace(addr, "  ", " ")
-    addr = Replace(addr, "  ", " ")
-    addr = Replace(addr, " ", "+")
-    geocodeNormalizeAddress = addr
-End Function
-
-
-Function geocodeCleanZip(zip As String) As String
-    ' normalize zipcode to 5 digits or 9 digits
-    zip = RegExValidate(zip, "[0-9]")
-    
-    If Len(zip) = 4 Or Len(zip) = 5 Then
-        geocodeCleanZip = Application.WorksheetFunction.Text(zip, "00000")
-    ElseIf Len(zip) = 8 Or Len(zip) = 9 Then
-        zip4 = Right(zip, 4)
-        zip5 = Left(zip, Len(zip) - 4)
-        geocodeCleanZip = Application.WorksheetFunction.Text(zip5, "00000") & "-" & Application.WorksheetFunction.Text(zip4, "0000")
-    Else:
-        geocodeCleanZip = ""
-    End If
-End Function
-
 
 
 ' remove everything following the start of the string trim
@@ -191,89 +111,20 @@ Function trimstrafter(basestr As String, trim As String) As String
 End Function
 
 
-
-
-Function geocode(street As String, city As String, state As String, zip As String) As String
-    ' clean up the address and call geocodeAddressLookup
+Function geocode(location As String) As String
     Dim result As String
-    Dim addr As String
     
-    street = geocodeCleanStreet(street)
-    city = RegExValidate(LCase(city), "[a-z ]")
-    state = RegExValidate(UCase(state), "[A-Z ]")
-    zip = geocodeCleanZip(zip)
-    
-    
-    ' if the street address is a PO box then we won't be able to geocode
-    ' if zip not blank then try looking up street and zip
-    '   if this fails, try looking up street, city, state
-    '      if this fails, try fixing up the street
-    '          if street has changed after fixup, try looking up street and zip
-    '                if this fails, try looking up street, city, state
+    'Geocode at yahoo using free-form addres format (see http://developer.yahoo.com/geo/placefinder/guide/requests.html#free-form-format)
     If [GeocoderToUse] = "Yahoo" Then
-        result = yahooAddressLookup(street, city, state, zip)
-    Else:
-        If Left(street, 5) = "xxxxx" Or _
-           Left(street, 6) = "po box" Or _
-           Left(street, 7) = "post of" Or _
-           Left(street, 7) = "p o box" Or _
-           Left(street, 7) = "city of" Then
-            result = ",,"
-        Else:
-            If zip <> "" Then
-                result = geocoderAddressLookup(geocodeNormalizeAddress(street & ", " & zip))
-            Else
-                result = ",,"
-            End If
-            If result = ",," Then
-                If city <> "" And state <> "" Then
-                    result = geocoderAddressLookup(geocodeNormalizeAddress(street & ", " & zip))
-                Else
-                    result = ",,"
-                End If
-                
-                If result = ",," And street <> "" Then
-                    oldstreet = street
-                    
-                    ' try to clean up street
-                    street = Replace(street, " th ", "th ")
-                    street = Replace(street, " rd ", "rd ")
-                    
-                    street = trimstrafter(street, "st")
-                    street = trimstrafter(street, "dr")
-                    street = trimstrafter(street, "rd")
-                    street = trimstrafter(street, "road")
-                    street = trimstrafter(street, "dr")
-                    street = trimstrafter(street, "lane")
-                    street = trimstrafter(street, "ln")
-                    street = trimstrafter(street, "ave")
-                    street = trimstrafter(street, "blvd")
-                    street = trimstrafter(street, "boulevard")
-                    street = trimstrafter(street, "pl")
-                    
-                    If street <> oldstreet Then
-                        If zip <> "" Then
-                            result = geocoderAddressLookup(geocodeNormalizeAddress(street & ", " & zip))
-                        Else
-                            result = ",,"
-                        End If
-                        If result = ",," Then
-                            result = geocoderAddressLookup(geocodeNormalizeAddress(street & ", " & zip))
-                        Else
-                            result = ",,"
-                        End If
-                    End If
-                End If
-            
-            End If
-        End If
+        result = yahooAddressLookup(location)
     End If
+
     geocode = result
 End Function
 
 
 
-Function yahooAddressLookup(street As String, city As String, state As String, zip As String) As String
+Function yahooAddressLookup(location As String) As String
     ' perform RESTian lookup on Yahoo
     Dim marshalledResult As String
     Dim yahoo As String
@@ -298,12 +149,10 @@ Function yahooAddressLookup(street As String, city As String, state As String, z
     Application.StatusBar = "Looking for " & street & ", " & city & ", " & state & " " & zip
     yahoo = trim(CStr([yahooid]))
     
-    street = trim(street)
-    city = trim(city)
-    state = trim(state)
-    zip = trim(zip)
+    street = trim(location)
     
-    URL = "http://where.yahooapis.com/geocode?q=" & URLEncode(street & "," & city & " " & state & " " & zip, True) & "&flags=C&appid=" & yahoo
+    'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
+    URL = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
     
     'Create Http object
     If IsEmpty(http) Then Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
