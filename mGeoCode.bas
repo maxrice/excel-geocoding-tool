@@ -1,9 +1,12 @@
 Attribute VB_Name = "mGeoCode"
 Const LATITUDECOL = 1         ' column to put longitude into
 Const LONGITUDECOL = 2        ' column to put latitude into
-Const PRECISIONCOL = 3
-Const LOCATIONCOL = 4
-Const FIRSTDATAROW = 6        ' rows above this row don't contain address data
+Const PRECISIONCOL = 3        ' column to put precision (quality index) into
+Const LOCATIONCOL = 4         ' column to put location info into
+Const FIRSTDATAROW = 13        ' rows above this row don't contain address data
+                                'TODO - edit geocodenotfound() and cleardataentryarea() to use this constant for range instead of hardcoded
+Const GOOGLEMAPSLINKCOL = 7    'Stores google maps link
+Dim vProxyStatus As String      'stores query when behind proxy
 
 ' holds cache of strings submitted to geocoder during this session along with results
 ' to ensure that duplicate strings aren't submitted
@@ -11,7 +14,7 @@ Dim geocodeResults As New Collection
 
 
 
-
+'TODO - edit this to reflect changes and add to README
 ' GEOCODING is done using the following layers
 '
 'geocodeSelectedRows
@@ -45,6 +48,26 @@ Sub geocodeSelectedRows()
     End If
 End Sub
 
+Sub geocodeNotFound()
+    Dim r As Integer
+    Call ProxyReload
+    If [GeocoderToUse] = "Yahoo" Then
+        Range("A13:C65536").Select
+        Selection.Replace What:="not found", Replacement:="", LookAt:=xlPart, _
+                          SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+                          ReplaceFormat:=False
+        Cells(FIRSTDATAROW, LATITUDECOL).Select
+        If [yahooid] <> "" Then
+            For r = FIRSTDATAROW To LastDataRow()
+                geocodeRow (r)
+            Next r
+            Cells(FIRSTDATAROW, LATITUDECOL).Select
+            Application.StatusBar = False
+        Else:
+            MsgBox "Please enter a Yahoo Id for geocoding"
+        End If
+    End If
+End Sub
 
 Sub geocodeAllRows()
     Dim r As Integer
@@ -57,6 +80,7 @@ Sub geocodeAllRows()
         Else:
             MsgBox "Please enter a Yahoo Id for geocoding"
         End If
+    End If
 End Sub
 
 ' geocode a single row of data
@@ -87,6 +111,7 @@ Sub geocodeRow(r As Integer)
         Cells(r, LATITUDECOL) = resultarray(0)
         Cells(r, LONGITUDECOL) = resultarray(1)
         Cells(r, PRECISIONCOL) = resultarray(2)
+        Cells(r, GOOGLEMAPSLINKCOL).Value = "=HYPERLINK(""http://maps.google.com/maps?f=q&hl=en&geocode=&q=" & resultarray(0) & "," & resultarray(1) & """)"
     End If
 End Sub
 
@@ -137,7 +162,7 @@ Function yahooAddressLookup(location As String) As String
     On Error Resume Next
     ' lookup the result in the collection
     ' an error will be raised if the value is not found
-    marshalledResult = geocodeResults(addr)
+    marshalledResult = geocodeResults(location)
     If marshalledResult <> "" Then
         ' if a value is found then return the result
         geocodeAddressLookup = marshalledResult
@@ -146,25 +171,46 @@ Function yahooAddressLookup(location As String) As String
     ' turn error handling back on
     On Error GoTo 0
     
-    Application.StatusBar = "Looking for " & street & ", " & city & ", " & state & " " & zip
+    Application.StatusBar = "Looking for " & location
     yahoo = trim(CStr([yahooid]))
     
     street = trim(location)
     
     'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
     URL = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
+    'Debug.Print URL
     
-    'Create Http object
-    If IsEmpty(http) Then Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
+    If vProxyStatus = "Yes" Then
+         'Create Http object
+        If IsEmpty(Http) Then Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+
+        'proxy HTTP -- code from:
+        'http://forums.aspfree.com/visual-basic-programming-38/proxy-auth-in-this-vb-script-20625.html
     
-    'Send request To URL
-    http.Open "GET", URL
+        ' Set to use proxy -- see:
+        ' http://msdn.microsoft.com/en-us/library/aa384059%28v=VS.85%29.aspx
+        Const HTTPREQUEST_SETCREDENTIALS_FOR_PROXY = 1
+        Const HTTPREQUEST_PROXYSETTING_PROXY = 2
+        Const AutoLogonPolicy_Always = 0
+        
+        Http.SetProxy HTTPREQUEST_PROXYSETTING_PROXY, [ProxyIP], "*.intra"
+        Http.Open "GET", URL, False
+        Http.SetAutoLogonPolicy AutoLogonPolicy_Always
+        MsgBox ("USed proxy")
+    Else
+        'Create Http object
+        If IsEmpty(Http) Then Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
-    http.send
+        'Send request To URL
+         Http.Open "GET", URL
+    End If
+    
+    Http.send           'TODO - error checking because of proxy
     'Get response data As a string
         
-    response = http.responseText
-
+    response = Http.responseText
+    'Debug.Print response
+    
     ' capture the latitude by regex matching the values in the tags <geo:lat> and <geo:long>
     lat = RegExMatch(response, "<latitude>([\.\-0-9]+)</latitude>")
     lng = RegExMatch(response, "<longitude>([\.\-0-9]+)</longitude>")
@@ -182,7 +228,7 @@ Function yahooAddressLookup(location As String) As String
     ' we can ignore this error
     On Error Resume Next
     ' store the result
-    geocodeResults(addr) = lat & "," & lng
+    geocodeResults(location) = lat & "," & lng
 End Function
 
 ' wraps string with a tag
@@ -210,6 +256,11 @@ Private Function max(a, b):
     End If
 End Function
 
+Sub ClearDataEntryArea()
+    Range("A13:J65536").Select
+    Selection.ClearContents
+    Range("A13").Select
+End Sub
 
 ' locate the last row containing address data
 Function LastDataRow() As Integer
@@ -234,3 +285,28 @@ Sub MacrosWorking()
     MsgBox "Macros are enabled."
 End Sub
 
+'Proxy functions
+Sub CheckProxy()
+    vProxyStatus = ""
+    [ProxyStatusStorage].Value = ""
+    Select Case MsgBox("Do you use a Proxy to access the internet?" _
+                       & vbCrLf & "" _
+                       & vbCrLf & "Reminder: Please configure the Proxy information if you have not done so." _
+                       , vbYesNo Or vbExclamation Or vbSystemModal Or vbDefaultButton1, "Proxy Check")
+
+        Case vbYes
+            vProxyStatus = "Yes"
+            [ProxyStatusStorage].Value = vProxyStatus
+            ' Writes the proxy usage status to a cell in the workbook for later retrievel.
+        Case vbNo
+            vProxyStatus = "No"
+            [ProxyStatusStorage].Value = vProxyStatus
+    End Select
+
+
+End Sub
+
+Public Sub ProxyReload()
+    vProxyStatus = [ProxyStatusStorage]
+    'This simple code is used to reload the the proxy usage.  Depending on the circumestances, the code can forget the status.
+End Sub
