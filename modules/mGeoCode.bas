@@ -203,7 +203,6 @@ Function yahooAddressLookup(location As String) As String
         Http.SetProxy HTTPREQUEST_PROXYSETTING_PROXY, [ProxyIP], "*.intra"
         Http.Open "GET", URL, False
         Http.SetAutoLogonPolicy AutoLogonPolicy_Always
-        MsgBox ("USed proxy")
     Else
         'Create Http object
         If IsEmpty(Http) Then Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
