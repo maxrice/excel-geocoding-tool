@@ -5,8 +5,8 @@ Easy to use Geocoding Tool for Excel. Download, enable macros, and add your own 
 
 Requirements
 ------------
-* Windows XP/Vista/7 (32bit/64bit)
-* Excel 2007/2010
+* Windows XP/Vista/7 (32bit/64bit) OR Mac OS X 10.5.8 or later (Intel)
+* Excel 2003/2007/2010 OR Excel 2004/2011 for Mac
 
 Installation
 ------------
@@ -19,6 +19,12 @@ See the excel file for basic instructions.
 
 ---------------
 ###Changelog
+###3.4 - 5/12/12
+* Feature - Now works on Mac! (proxy support on mac coming in next version)
+* Tweak - Simpler proxy setup
+* Tweak - New instructions
+* Fix - Removed Create KML functionality
+
 ###3.3 - 3/28/12
 * Feature - Added macro to clear all data entry fields
 * Feature - Added Geocode Not Found macro to only retry not found locations
