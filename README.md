@@ -1,7 +1,7 @@
 Excel Geocoding Tool
 =====================
 
-Easy to use Geocoding Tool for Excel. Download, enable macros, and add your own location data. Click Geocode All and you're done. Forked from Juice Analytics tool (http://www.juiceanalytics.com/writing/excel-geocoding-tool-v2/)
+Easy to use Geocoding Tool for Excel. Download, enable macros, and add your own location data. Click Geocode All and you're done.
 
 Requirements
 ------------
@@ -10,7 +10,7 @@ Requirements
 
 Installation
 ------------
-Simply download and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
+Simply download (https://github.com/downloads/maxrice/excel-geocoding-tool/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
 
 Getting Started
 ---------------
@@ -42,7 +42,7 @@ See the excel file for basic instructions.
 * Tweak - Removed geocoder.us
 * Fix - Changed Yahoo API to Placefinder API
 * Fix - Removed mClipboard module to make compatible with 64bit systems
-* Fork - Initial fork
+* Fork - Initial fork (http://www.juiceanalytics.com/writing/excel-geocoding-tool-v2/)
 
 ----------
 
