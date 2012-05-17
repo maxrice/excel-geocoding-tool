@@ -1,11 +1,28 @@
 Attribute VB_Name = "mHTTPRequest"
+'Copyright 2012 Max Rice, Juice Analytics
+'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+'(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
+'merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
+'to do so, subject to the following conditions:
+'
+'The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+'
+'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+'MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+'FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+'WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'
+'Enjoy!
+Option Explicit
 Public Function HTTPGet(url As String, Optional UseProxy As Boolean = False) As String
+    Dim Http As Object
+    Dim script As String
     
     If WinOrMac = "win" Then
     'Windows HTTP Request
         If UseProxy = True Then
              'Create Http object
-            If IsEmpty(Http) Then Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+            Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
             'proxy HTTP
             'from http://forums.aspfree.com/visual-basic-programming-38/proxy-auth-in-this-vb-script-20625.html
@@ -21,7 +38,7 @@ Public Function HTTPGet(url As String, Optional UseProxy As Boolean = False) As 
             Http.SetAutoLogonPolicy AutoLogonPolicy_Always
         Else
             'Create Http object
-            If IsEmpty(Http) Then Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+            Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
         
             'Send request To URL
              Http.Open "GET", url
@@ -36,13 +53,15 @@ Public Function HTTPGet(url As String, Optional UseProxy As Boolean = False) As 
     Else
     'Mac HTTP Request
         If UseProxy = True Then
-            'proxy setup for curl
+            script = "do shell script " & Chr(34) & "curl " & url & " --proxy " & Range("ProxyIP") & Chr(34)
+        Else
+            script = "do shell script " & Chr(34) & "curl " & url & Chr(34)
         End If
+        'Debug.Print script
         
-        script = "do shell script " & Chr(34) & "curl " & url & Chr(34)
         'TODO - error catch
         HTTPGet = MacScript(script)
-
+        
     End If
     
 End Function

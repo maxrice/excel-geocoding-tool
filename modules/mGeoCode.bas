@@ -1,4 +1,21 @@
 Attribute VB_Name = "mGeoCode"
+'Copyright 2012 Max Rice, Juice Analytics
+'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+'(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
+'merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
+'to do so, subject to the following conditions:
+'
+'The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+'
+'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+'MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+'FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+'WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'
+'Enjoy!
+
+Option Explicit
+
 Const LATITUDECOL = 1         ' column to put longitude into
 Const LONGITUDECOL = 2        ' column to put latitude into
 Const PRECISIONCOL = 3        ' column to put precision (quality index) into
@@ -88,7 +105,7 @@ Sub geocodeRow(r As Integer)
     
         ' pass the location to geocode
         ' geocode returns a string containing the results in comma delimited format
-        resultstr = Geocode(CStr(Cells(r, LOCATIONCOL)))
+        resultstr = geoCode(CStr(Cells(r, LOCATIONCOL)))
         
         ' parse the results, if lat/long/precision is blank, consider it not found
         resultarray = Split(resultstr, ",")
@@ -106,7 +123,7 @@ Sub geocodeRow(r As Integer)
     End If
 End Sub
 
-Function Geocode(location As String) As String
+Function geoCode(location As String) As String
     
     Dim result As String
     
@@ -115,7 +132,7 @@ Function Geocode(location As String) As String
         result = yahooAddressLookup(location)
     End If
 
-    Geocode = result
+    geoCode = result
     
 End Function
 
@@ -125,7 +142,9 @@ Function yahooAddressLookup(location As String) As String
     Dim yahoo As String
     Dim response As String
     Dim url As String
-    
+    Dim lat As String
+    Dim lng As String
+    Dim precision As String
     
     ' marshal the results of this very time consuming function
     ' see if we've already looked up this address
@@ -136,7 +155,7 @@ Function yahooAddressLookup(location As String) As String
     marshalledResult = geocodeResults(location)
     If marshalledResult <> "" Then
         ' if a value is found then return the result
-        geocodeAddressLookup = marshalledResult
+        yahooAddressLookup = marshalledResult
         Exit Function
     End If
     ' turn error handling back on
@@ -147,7 +166,7 @@ Function yahooAddressLookup(location As String) As String
 
     
     'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
-    url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
+    url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "%26flags=C%26appid=" & yahoo
     'Debug.Print URL
    
     'Get the response via HTTP GET & use a proxy if required
@@ -159,7 +178,8 @@ Function yahooAddressLookup(location As String) As String
     
     'Debug.Print response
     
-    If Mid(response, (InStr(1, response, "<Found>", vbTextCompare) + 7), (InStr(1, response, "</Found>", vbTextCompare) - 7 - InStr(1, response, "<Found>", vbTextCompare))) = 1 Then
+    'Yahoo will return multiple results if it found more than 1 good match
+    If Mid(response, (InStr(1, response, "<Found>", vbTextCompare) + 7), (InStr(1, response, "</Found>", vbTextCompare) - 7 - InStr(1, response, "<Found>", vbTextCompare))) > 0 Then
         'Found
         'if excel for mac had regex support, we'd use that. it does not, so use these silly functions to find lat/long/quality while maintaining win/mac compatibility
         lat = Mid(response, (InStr(1, response, "<latitude>", vbTextCompare) + 10), (InStr(1, response, "</latitude>", vbTextCompare) - 10 - InStr(1, response, "<latitude>", vbTextCompare)))
@@ -203,6 +223,7 @@ End Function
 ' locate the last row containing address data
 Function LastDataRow() As Integer
     Dim r As Integer
+    Dim activecelladdr As String
     
     activecelladdr = ActiveCell.Address
 

@@ -19,6 +19,12 @@ See the excel file for basic instructions.
 
 ---------------
 ###Changelog
+###3.4.1 - 5/17/12
+* Feature - Proxy support on Mac
+* Tweak - Code readability and variable declaration
+* Fix - fixed curl url encoding bug on mac
+* Misc - Added MIT License notice
+
 ###3.4 - 5/12/12
 * Feature - Now works on Mac! (proxy support on mac coming in next version)
 * Tweak - Simpler proxy setup
