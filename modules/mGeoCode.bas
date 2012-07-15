@@ -16,41 +16,47 @@ Attribute VB_Name = "mGeoCode"
 
 Option Explicit
 
-Const LATITUDECOL = 1         ' column to put longitude into
-Const LONGITUDECOL = 2        ' column to put latitude into
-Const PRECISIONCOL = 3        ' column to put precision (quality index) into
-Const LOCATIONCOL = 4         ' column to put location info into
-Const FIRSTDATAROW = 13        ' rows above this row don't contain address data
-Const GOOGLEMAPSLINKCOL = 7    'Stores google maps link
+Const LATITUDECOL = 1               'column to put longitude into
+Const LONGITUDECOL = 2              'column to put latitude into
+Const PRECISIONCOL = 3              'column to put precision (quality index) into
+Const LOCATIONCOL = 4               'column to put location info into
+Const FIRSTDATAROW = 13             'rows above this row don't contain address data
+Const GOOGLEMAPSLINKCOL = 7         'column to store google maps link
+Const DEBUGMODEQUERYCOL = 10        'column to store HTTP query if debug mode is on
+Const DEBUGMODERESPONSECOL = 11     'column to store Response XML if debug mode is on
 
-' holds cache of strings submitted to geocoder during this session along with results
-' to ensure that duplicate strings aren't submitted
-Dim geocodeResults As New Collection
+'Global query/response variables for debugging
+Dim debugMode As Boolean
+Dim debugModeQuery As String
+Dim debugModeResponse As String
 
 
-' submit selected rows to the geocoder
+' geocode only selected rows
 Sub geocodeSelectedRows()
-    Dim r
-    If Range("GeocoderToUse") = "Yahoo" Then
-        If Range("YahooID") <> "" Then
-            For Each r In Selection.Rows()
-                If r.Row() >= FIRSTDATAROW Then geocodeRow (r.Row())
-            Next r
-            Application.StatusBar = False
-        Else:
-            MsgBox "Please enter a Yahoo ID for geocoding"
-        End If
+    
+    If checkSettings = True Then
+        
+        Dim r
+        For Each r In Selection.Rows()
+            If r.Row() >= FIRSTDATAROW Then
+                geocodeRow (r.Row())
+            End If
+        Next r
+            
+        Application.StatusBar = False
+        
     End If
+
 End Sub
 
 Sub geocodeNotFound()
-    Dim r As Integer
-    If Range("GeocoderToUse") = "Yahoo" Then
-
+    
+    If checkSettings = True Then
+        
+        
         'Loop through result range and remove "not found" cells
         'This is much easier with range.replace, but the function parameters are different between win/mac, which makes it unusable for us. The joys of cross-compatibility :)
         Dim Row As Long, Column As Long
-        
         For Row = FIRSTDATAROW To 65536
             For Column = LATITUDECOL To PRECISIONCOL
                 If Cells(Row, Column).Value = "not found" Then
@@ -60,35 +66,39 @@ Sub geocodeNotFound()
         Next Row
 
         Cells(FIRSTDATAROW, LATITUDECOL).Select
-        If Range("YahooID") <> "" Then
-            For r = FIRSTDATAROW To LastDataRow()
-                geocodeRow (r)
-            Next r
-            Cells(FIRSTDATAROW, LATITUDECOL).Select
-            Application.StatusBar = False
-        Else:
-            MsgBox "Please enter a Yahoo ID for geocoding"
-        End If
+        
+        'Now geocode
+        Dim r As Integer
+        For r = FIRSTDATAROW To LastDataRow()
+            geocodeRow (r)
+        Next r
+        
+        Cells(FIRSTDATAROW, LATITUDECOL).Select
+        Application.StatusBar = False
+        
     End If
+
 End Sub
 
 Sub geocodeAllRows()
-    Dim r As Integer
-    If Range("GeocoderToUse") = "Yahoo" Then
+    
+    If checkSettings = True Then
+    
+        Dim r As Integer
         Range("A13:C65536").Select
         Selection.ClearContents
         Range("J13:j65536").Select
         Selection.ClearContents
         Cells(FIRSTDATAROW, LATITUDECOL).Select
-        If Range("YahooID") <> "" Then
-            For r = FIRSTDATAROW To LastDataRow()
-                geocodeRow (r)
-            Next r
-            Application.StatusBar = False
-        Else:
-            MsgBox "Please enter a Yahoo Id for geocoding"
-        End If
+        
+        For r = FIRSTDATAROW To LastDataRow()
+            geocodeRow (r)
+        Next r
+        
+        Application.StatusBar = False
+       
     End If
+    
 End Sub
 
 ' geocode a single row of data
@@ -120,25 +130,24 @@ Sub geocodeRow(r As Integer)
         If Cells(r, LATITUDECOL) <> "not found" Then
             Cells(r, GOOGLEMAPSLINKCOL).Value = "=HYPERLINK(""http://maps.google.com/maps?f=q&hl=en&geocode=&q=" & resultarray(0) & "," & resultarray(1) & """)"
         End If
+        If debugMode = True Then
+            Cells(r, DEBUGMODEQUERYCOL).Value = debugModeQuery
+            Cells(r, DEBUGMODERESPONSECOL).Value = debugModeResponse
+            Cells(r, DEBUGMODERESPONSECOL).WrapText = False
+        End If
     End If
 End Sub
 
 Function Geocode(location As String) As String
-    
-    Dim result As String
-    
-    'Geocode at yahoo using free-form addres format (see http://developer.yahoo.com/geo/placefinder/guide/requests.html#free-form-format)
-    If Range("GeocoderToUse") = "Yahoo" Then
-        result = yahooAddressLookup(location)
-    End If
 
-    Geocode = result
-    
+    'Geocode at yahoo using free-form addres format (see http://developer.yahoo.com/geo/placefinder/guide/requests.html#free-form-format)
+
+    Geocode = yahooAddressLookup(location)
+
 End Function
 
 Function yahooAddressLookup(location As String) As String
     ' perform RESTian lookup on Yahoo
-    Dim marshalledResult As String
     Dim yahoo As String
     Dim response As String
     Dim url As String
@@ -146,20 +155,6 @@ Function yahooAddressLookup(location As String) As String
     Dim lng As String
     Dim precision As String
     
-    ' marshal the results of this very time consuming function
-    ' see if we've already looked up this address
-    ' turn error handling off
-    On Error Resume Next
-    ' lookup the result in the collection
-    ' an error will be raised if the value is not found
-    marshalledResult = geocodeResults(location)
-    If marshalledResult <> "" Then
-        ' if a value is found then return the result
-        yahooAddressLookup = marshalledResult
-        Exit Function
-    End If
-    ' turn error handling back on
-    On Error GoTo 0
     
     Application.StatusBar = "Looking for " & location
     yahoo = trim(CStr(Range("YahooID")))
@@ -167,7 +162,9 @@ Function yahooAddressLookup(location As String) As String
     
     'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
     url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
-    'Debug.Print URL
+    
+    'Log query if debug mode is on
+    If debugMode = True Then debugModeQuery = url
    
     'Get the response via HTTP GET & use a proxy if required
     If Range("UseProxy") = "Yes" Then
@@ -176,7 +173,8 @@ Function yahooAddressLookup(location As String) As String
         response = HTTPGet(url, False)
     End If
     
-    'Debug.Print response
+    'Log result if debug mode is on
+    If debugMode = True Then debugModeResponse = response
     
     'Yahoo will return multiple results if it found more than 1 good match
     If Mid(response, (InStr(1, response, "<Found>", vbTextCompare) + 7), (InStr(1, response, "</Found>", vbTextCompare) - 7 - InStr(1, response, "<Found>", vbTextCompare))) > 0 Then
@@ -195,19 +193,34 @@ Function yahooAddressLookup(location As String) As String
    
     End If
     
-    
-    ' store the result in the cache collection
-    '
-    ' turn off error handling with "On Error Resume Next"
-    ' an error will be raised if you try to store to an address already in the cache
-    ' we can ignore this error
-    On Error Resume Next
-    ' store the result
-    geocodeResults(location) = lat & "," & lng
+End Function
+
+Function checkSettings()
+   
+    'Check if Yahoo is selected as geocoder and API key is not blank
+    If Range("GeocoderToUse") = "Yahoo" Then
+        If Range("YahooID") <> "" Then
+            
+            'Set debug mode flag if setting is enabled
+            If Range("DebugMode") = "On" Then
+                debugMode = True
+            Else:
+                debugMode = False
+            End If
+            
+            'Ready to Geocode
+            checkSettings = True
+        Else:
+            MsgBox "Please enter a Yahoo ID for geocoding"
+            'Not ready to geocode
+            checkSettings = False
+        End If
+    End If
+
 End Function
 
 Sub ClearDataEntryArea()
-    Range("A13:J65536").Select
+    Range("A13:K65536").Select
     Selection.ClearContents
     Range("A13").Select
 End Sub

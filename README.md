@@ -20,8 +20,10 @@ See the excel file for basic instructions.
 ---------------
 ###Changelog
 
-###3.4.2 - 7/XX/12
-* 
+###3.4.2 - 7/15/12
+* Feature - Added debug mode
+* Tweak - Removed string cache, as it was causing a fatal error in some Excel versions
+* Tweak - Refactored some code in preparation for v3.5 release
 * Fix - fixed url encoding bug that affected accuracy of locations
 
 ###3.4.1 - 5/17/12
