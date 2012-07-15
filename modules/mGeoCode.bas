@@ -105,7 +105,7 @@ Sub geocodeRow(r As Integer)
     
         ' pass the location to geocode
         ' geocode returns a string containing the results in comma delimited format
-        resultstr = geoCode(CStr(Cells(r, LOCATIONCOL)))
+        resultstr = Geocode(CStr(Cells(r, LOCATIONCOL)))
         
         ' parse the results, if lat/long/precision is blank, consider it not found
         resultarray = Split(resultstr, ",")
@@ -123,7 +123,7 @@ Sub geocodeRow(r As Integer)
     End If
 End Sub
 
-Function geoCode(location As String) As String
+Function Geocode(location As String) As String
     
     Dim result As String
     
@@ -132,7 +132,7 @@ Function geoCode(location As String) As String
         result = yahooAddressLookup(location)
     End If
 
-    geoCode = result
+    Geocode = result
     
 End Function
 
@@ -166,7 +166,7 @@ Function yahooAddressLookup(location As String) As String
 
     
     'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
-    url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "%26flags=C%26appid=" & yahoo
+    url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
     'Debug.Print URL
    
     'Get the response via HTTP GET & use a proxy if required

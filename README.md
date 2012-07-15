@@ -19,6 +19,11 @@ See the excel file for basic instructions.
 
 ---------------
 ###Changelog
+
+###3.4.2 - 7/XX/12
+* 
+* Fix - fixed url encoding bug that affected accuracy of locations
+
 ###3.4.1 - 5/17/12
 * Feature - Proxy support on Mac
 * Tweak - Code readability and variable declaration
