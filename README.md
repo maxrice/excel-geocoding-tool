@@ -10,7 +10,7 @@ Requirements
 
 Installation
 ------------
-Simply download (https://github.com/downloads/maxrice/excel-geocoding-tool/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
+Simply download (https://github.com/maxrice/excel-geocoding-tool/blob/master/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
 
 Getting Started
 ---------------
@@ -19,6 +19,9 @@ See the excel file for basic instructions.
 
 ---------------
 ###Changelog
+
+###3.5 - 4/21/13
+* Fix - Use Bing for geocoding now that Yahoo's PlaceFinder API was discontinued
 
 ###3.4.2 - 7/15/12
 * Feature - Added debug mode
