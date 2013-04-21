@@ -1,5 +1,5 @@
 Attribute VB_Name = "mHTTPRequest"
-'Copyright 2012 Max Rice, Juice Analytics
+'Copyright 2012-2013 Max Rice, Juice Analytics
 'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
 '(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
 'merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
@@ -13,16 +13,19 @@ Attribute VB_Name = "mHTTPRequest"
 'WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '
 'Enjoy!
+
 Option Explicit
+
+'Perform a HTTP GET for the passed URL
 Public Function HTTPGet(url As String, Optional UseProxy As Boolean = False) As String
-    Dim Http As Object
+    Dim http As Object
     Dim script As String
     
     If WinOrMac = "win" Then
     'Windows HTTP Request
         If UseProxy = True Then
              'Create Http object
-            Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+            Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
     
             'proxy HTTP
             'from http://forums.aspfree.com/visual-basic-programming-38/proxy-auth-in-this-vb-script-20625.html
@@ -33,22 +36,22 @@ Public Function HTTPGet(url As String, Optional UseProxy As Boolean = False) As 
             Const HTTPREQUEST_PROXYSETTING_PROXY = 2
             Const AutoLogonPolicy_Always = 0
             
-            Http.SetProxy HTTPREQUEST_PROXYSETTING_PROXY, [ProxyIP], "*.intra"
-            Http.Open "GET", url, False
-            Http.SetAutoLogonPolicy AutoLogonPolicy_Always
+            http.SetProxy HTTPREQUEST_PROXYSETTING_PROXY, [ProxyIP], "*.intra"
+            http.Open "GET", url, False
+            http.SetAutoLogonPolicy AutoLogonPolicy_Always
         Else
             'Create Http object
-            Set Http = CreateObject("WinHttp.WinHttpRequest.5.1")
+            Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
         
             'Send request To URL
-             Http.Open "GET", url
+             http.Open "GET", url
         End If
        
        'TODO - error checking because of proxy
-        Http.send
+        http.send
         
         'Get response data As a string
-        HTTPGet = Http.responseText
+        HTTPGet = http.responseText
         
     Else
     'Mac HTTP Request
@@ -115,7 +118,7 @@ Public Function WinOrMac() As String
         WinOrMac = "win"
     Else
         'I am a Mac and will test if it is Excel 2011 or higher
-        If val(Application.Version) > 14 Then
+        If Val(Application.Version) > 14 Then
             WinOrMac = "mac"
         End If
     End If

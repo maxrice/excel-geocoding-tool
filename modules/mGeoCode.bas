@@ -1,5 +1,5 @@
 Attribute VB_Name = "mGeoCode"
-'Copyright 2012 Max Rice, Juice Analytics
+'Copyright 2012-2013 Max Rice, Juice Analytics
 'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
 '(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
 'merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
@@ -37,7 +37,7 @@ Sub geocodeSelectedRows()
     If checkSettings = True Then
         
         Dim r
-        For Each r In Selection.Rows()
+        For Each r In Selection.rows()
             If r.Row() >= FIRSTDATAROW Then
                 geocodeRow (r.Row())
             End If
@@ -142,26 +142,28 @@ Function Geocode(location As String) As String
 
     'Geocode at yahoo using free-form addres format (see http://developer.yahoo.com/geo/placefinder/guide/requests.html#free-form-format)
 
-    Geocode = yahooAddressLookup(location)
+    Geocode = bingAddressLookup(location)
 
 End Function
 
-Function yahooAddressLookup(location As String) As String
-    ' perform RESTian lookup on Yahoo
-    Dim yahoo As String
+
+'Perform REST lookup on Bing
+Function bingAddressLookup(location As String) As String
+    On Error GoTo catchError:
+    Dim bingMapsKey As String
     Dim response As String
+    Dim geo As cGeocode
     Dim url As String
     Dim lat As String
     Dim lng As String
-    Dim precision As String
     
+    Set geo = New cGeocode
     
     Application.StatusBar = "Looking for " & location
-    yahoo = trim(CStr(Range("YahooID")))
+    bingMapsKey = Trim(CStr(Range("bingMapsKey")))
 
-    
-    'flags=C only returns basic latitude/longitude/precision, excludes address parsing and other info
-    url = "http://where.yahooapis.com/geocode?q=" & URLEncode(location, True) & "&flags=C&appid=" & yahoo
+    'set the URL
+    url = "http://dev.virtualearth.net/REST/v1/Locations?query=" & URLEncode(location, True) & "&maxResults=1&key=" & bingMapsKey
     
     'Log query if debug mode is on
     If debugMode = True Then debugModeQuery = url
@@ -176,30 +178,22 @@ Function yahooAddressLookup(location As String) As String
     'Log result if debug mode is on
     If debugMode = True Then debugModeResponse = response
     
-    'Yahoo will return multiple results if it found more than 1 good match
-    If Mid(response, (InStr(1, response, "<Found>", vbTextCompare) + 7), (InStr(1, response, "</Found>", vbTextCompare) - 7 - InStr(1, response, "<Found>", vbTextCompare))) > 0 Then
-        'Found
-        'if excel for mac had regex support, we'd use that. it does not, so use these silly functions to find lat/long/quality while maintaining win/mac compatibility
-        lat = Mid(response, (InStr(1, response, "<latitude>", vbTextCompare) + 10), (InStr(1, response, "</latitude>", vbTextCompare) - 10 - InStr(1, response, "<latitude>", vbTextCompare)))
-        lng = Mid(response, (InStr(1, response, "<longitude>", vbTextCompare) + 11), (InStr(1, response, "</longitude>", vbTextCompare) - 11 - InStr(1, response, "<longitude>", vbTextCompare)))
-        precision = Mid(response, (InStr(1, response, "<quality>", vbTextCompare) + 9), (InStr(1, response, "</quality>", vbTextCompare) - 9 - InStr(1, response, "<quality>", vbTextCompare)))
-        
-        'return csv
-        yahooAddressLookup = lat & "," & lng & "," & precision
-        
-    Else
-        'Not found
-        yahooAddressLookup = ",,"
-   
-    End If
+    'parse the response JSON
+    geo.parseResponse (CStr(response))
+    
+    'return the lat/long/precision
+    bingAddressLookup = geo.getLatitude() & "," & geo.getLongitude() & "," & geo.getPrecision()
+    
+catchError:
+    bingAddressLookup = ",,"
     
 End Function
 
 Function checkSettings()
    
     'Check if Yahoo is selected as geocoder and API key is not blank
-    If Range("GeocoderToUse") = "Yahoo" Then
-        If Range("YahooID") <> "" Then
+    If Range("GeocoderToUse") = "Bing" Then
+        If Range("bingMapsKey") <> "" Then
             
             'Set debug mode flag if setting is enabled
             If Range("DebugMode") = "On" Then
@@ -211,7 +205,7 @@ Function checkSettings()
             'Ready to Geocode
             checkSettings = True
         Else:
-            MsgBox "Please enter a Yahoo ID for geocoding"
+            MsgBox "Please enter a Bing Maps Key for geocoding"
             'Not ready to geocode
             checkSettings = False
         End If
@@ -225,11 +219,11 @@ Sub ClearDataEntryArea()
     Range("A13").Select
 End Sub
 
-Private Function max(a, b):
-    If a > b Then
+Private Function max(a, B):
+    If a > B Then
         max = a
     Else
-        max = b
+        max = B
     End If
 End Function
 
