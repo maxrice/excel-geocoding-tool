@@ -20,6 +20,9 @@ See the excel file for basic instructions.
 ---------------
 ###Changelog
 
+###3.5.1 - 5/2/13
+* Fix - Fixed issue with error handling
+
 ###3.5 - 4/21/13
 * Fix - Use Bing for geocoding now that Yahoo's PlaceFinder API was discontinued
 

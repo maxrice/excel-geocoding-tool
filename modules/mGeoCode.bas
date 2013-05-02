@@ -149,7 +149,7 @@ End Function
 
 'Perform REST lookup on Bing
 Function bingAddressLookup(location As String) As String
-    On Error GoTo catchError:
+    On Error Resume Next
     Dim bingMapsKey As String
     Dim response As String
     Dim geo As cGeocode
@@ -183,9 +183,6 @@ Function bingAddressLookup(location As String) As String
     
     'return the lat/long/precision
     bingAddressLookup = geo.getLatitude() & "," & geo.getLongitude() & "," & geo.getPrecision()
-    
-catchError:
-    bingAddressLookup = ",,"
     
 End Function
 
