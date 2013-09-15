@@ -10,7 +10,7 @@ Requirements
 
 Installation
 ------------
-Simply download (https://github.com/maxrice/excel-geocoding-tool/blob/master/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
+Simply [download](https://github.com/maxrice/excel-geocoding-tool/releases/download/excel-geocoding-tool-3.6/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
 
 Getting Started
 ---------------
