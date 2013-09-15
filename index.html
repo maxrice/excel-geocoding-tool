@@ -29,7 +29,7 @@
       <header>
         <h1>Excel Geocoding Tool</h1>
         <ul>
-          <li><a href="https://github.com/maxrice/excel-geocoding-tool/blob/master/excel-geocoding-tool.xls" onClick="_gaq.push(['_trackEvent', 'download', 'excel',,, false]);">Download <strong>Excel File</strong></a></li>
+          <li><a href="https://github.com/maxrice/excel-geocoding-tool/releases/download/excel-geocoding-tool-3.6/excel-geocoding-tool.xls" onClick="_gaq.push(['_trackEvent', 'download', 'excel',,, false]);">Download <strong>Excel File</strong></a></li>
           <li><a href="https://github.com/maxrice/excel-geocoding-tool/zipball/master" onClick="_gaq.push(['_trackEvent', 'download', 'source',,, false]);">Download <strong>Source</strong></a></li>
           <li><a href="https://github.com/maxrice/excel-geocoding-tool" onClick="_gaq.push(['_trackEvent', 'view', 'github',,, false]);">View On <strong>GitHub</strong></a></li>
         </ul>
@@ -41,19 +41,31 @@
 
 <ul>
 <li>Windows XP/Vista/7 (32bit/64bit) OR Mac OS X 10.5.8 or later (Intel)</li>
-<li>Excel 2003/2007/2010 OR Excel 2004/2011 for Mac</li>
+<li>Excel 2003/2007/2010 OR Excel 2011 for Mac</li>
 </ul><h2>Installation &amp; Getting Started</h2>
 
-<p>Simply <a href="https://github.com/maxrice/excel-geocoding-tool/blob/master/excel-geocoding-tool.xls" onClick="_gaq.push(['_trackEvent', 'download', 'excel',,, false]);">download</a> and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.</p>
+<p>Simply <a href="https://github.com/maxrice/excel-geocoding-tool/releases/download/excel-geocoding-tool-3.6/excel-geocoding-tool.xls" onClick="_gaq.push(['_trackEvent', 'download', 'excel',,, false]);">download</a> and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.</p>
 
 <hr><h3>Changelog</h3>
-<h3>3.5 - 4/21/13</h3>
+
+<h3>3.6 - 2013-09-15</h3>
+<ul>
+<li>Feature - Mac compatibility returns! Use Excel for Mac 2011 or greater</li>
+<li>Tweak - Refactor for easier maintainability</li>
+<li>Tweak - Greatly improved error handling</li>
+</ul>
+
+<h3>3.5.1 - 2013-05-02</h3>
+<ul>
+<li>Fix - Fixed issue with error handling</li>
+</ul>
+
+<h3>3.5 - 2013-04-21</h3>
 <ul>
 <li>Fix - Use Bing for geocoding since Yahoo's PlaceFinder API was discontinued</li>
 </ul>
 
-<h3>3.4.2 - 7/15/12</h3>
-
+<h3>3.4.2 - 2012-07-15</h3>
 <ul>
 <li>Feature - Added debug mode</li>
 <li>Tweak - Removed string cache, as it was causing a fatal error in some Excel versions</li>
@@ -61,8 +73,7 @@
 <li>Fix - Fixed url encoding bug that affected accuracy of locations</li>
 </ul>
 
-<h3>3.4.1 - 5/17/12</h3>
-
+<h3>3.4.1 -  2012-05-17</h3>
 <ul>
 <li>Feature - Proxy support on Mac</li>
 <li>Tweak - Code readability and variable declaration</li>
@@ -70,15 +81,15 @@
 <li>Misc - Added MIT License notice</li>
 </ul>
 
-<h3>3.4 - 5/12/12</h3>
-
+<h3>3.4 - 2012-05-12</h3>
 <ul>
 <li>Feature - Now works on Mac! (proxy support on mac coming in next version)</li>
 <li>Tweak - Simpler proxy setup</li>
 <li>Tweak - New instructions</li>
 <li>Fix - Removed Create KML functionality</li>
-</ul><h3>3.3 - 3/28/12</h3>
+</ul>
 
+<h3>3.3 - 2012-03-28</h3>
 <ul>
 <li>Feature - Added macro to clear all data entry fields</li>
 <li>Feature - Added Geocode Not Found macro to only retry not found locations</li>
@@ -89,8 +100,9 @@
 <li>Tweak - Modified Geocode Selected Row macro to clear lat data, enabling it to run again</li>
 <li>Tweak - Modified Geocode All macro to clear entered data</li>
 <li>Tweak - Removed Google Earth auto-start on export</li>
-</ul><h3>3.2 - 3/27/12</h3>
+</ul>
 
+<h3>3.2 - 2012-03-27</h3>
 <ul>
 <li>Tweak - Removed juice analytics logo and misc. extraneous code</li>
 <li>Tweak - Removed beep on geocode</li>
