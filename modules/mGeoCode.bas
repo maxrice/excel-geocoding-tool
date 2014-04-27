@@ -69,7 +69,7 @@ Sub geocodeNotFound()
         Cells(FIRSTDATAROW, LATITUDECOL).Select
         
         'Now geocode
-        Dim r As Integer
+        Dim r As Long
         For r = FIRSTDATAROW To LastDataRow()
             geocodeRow (r)
         Next r
@@ -86,7 +86,7 @@ Sub geocodeAllRows()
     
     If checkSettings = True Then
     
-        Dim r As Integer
+        Dim r As Long
         Range("A13:C65536").Select
         Selection.ClearContents
         Range("J13:j65536").Select
@@ -104,7 +104,7 @@ Sub geocodeAllRows()
 End Sub
 
 'geocode a single row of data
-Sub geocodeRow(r As Integer)
+Sub geocodeRow(r As Long)
     Dim rawGeocodeData As String
     Dim geocodeData
     Dim latitude As String
@@ -219,7 +219,7 @@ End Function
 
 ' locate the last row containing address data
 Function LastDataRow() As Integer
-    Dim r As Integer
+    Dim r As Long
     Dim activecelladdr As String
     
     activecelladdr = ActiveCell.Address
