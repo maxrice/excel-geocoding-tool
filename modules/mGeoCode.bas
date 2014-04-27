@@ -59,7 +59,7 @@ Sub geocodeNotFound()
         'This is much easier with range.replace, but the function parameters are different between win/mac, which makes it unusable for us. The joys of cross-compatibility :)
         Dim Row As Long, Column As Long
         For Row = FIRSTDATAROW To 65536
-            For Column = LATITUDECOL To PRECISIONCOL
+            For Column = LATITUDECOL To CONFIDENCECOL
                 If Cells(Row, Column).Value = "not found" Then
                     Cells(Row, Column).Value = ""
                 End If
