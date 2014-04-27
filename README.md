@@ -18,6 +18,10 @@ Love the tool? Send a [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_xcli
 
 ### Changelog
 
+### 3.6.1 - 2014-04-27
+* Tweak - You can now geocode up to 65k rows instead of 32k, huzzah!
+* Fix - Fix typo affecting "Geocode not found rows" functionality
+
 ### 3.6 - 2013-09-15
 * Feature - Mac compatibility returns! Use Excel for Mac 2011 or greater
 * Tweak - Refactor for easier maintainability
