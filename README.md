@@ -6,7 +6,7 @@ Easy to use Geocoding Tool for Excel. Download, enable macros, and add your own 
 * Excel 2003/2007/2010 OR Excel 2011 for Mac
 
 ## Installation
-Simply [download](https://github.com/maxrice/excel-geocoding-tool/releases/download/excel-geocoding-tool-3.6/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
+Simply [download](https://github.com/maxrice/excel-geocoding-tool/releases/download/3.6.1/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
 
 ## Getting Started
 See the excel file for basic instructions.
