@@ -1,6 +1,5 @@
-Attribute VB_Name = "mGeoCode"
 'MIT License
-'Copyright 2012-2013 Max Rice (max@maxrice.com), Juice Analytics
+'Copyright 2012-2025 Max Rice (max@maxrice.com), Juice Analytics
 'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
 '(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
 'merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished
@@ -118,8 +117,8 @@ Sub geocodeRow(r As Long)
     If Cells(r, LOCATIONCOL) <> "" And Cells(r, LATITUDECOL) = "" Then
     
         ' pass the location to geocode
-        ' bingAddressLookup returns an array containing the lat/long/confidence
-        rawGeocodeData = bingAddressLookup(CStr(Cells(r, LOCATIONCOL)))
+        ' azureAddressLookup returns an array containing the lat/long/confidence
+        rawGeocodeData = azureAddressLookup(CStr(Cells(r, LOCATIONCOL)))
         
         geocodeData = Split(rawGeocodeData, "|")
         
@@ -154,51 +153,51 @@ Sub geocodeRow(r As Long)
     
 End Sub
 
-'Perform REST lookup on Bing
-Function bingAddressLookup(location As String) As String
+'Perform REST lookup on Azure Maps
+Function azureAddressLookup(location As String) As String
     On Error Resume Next
-    Dim bing As New cBingMapsRESTRequest
+    Dim azure As New cAzureMapsRESTRequest
     Dim geocodeData As String
 
     Application.StatusBar = "Looking for " & location
-    
+
     'perform the lookup
-    geocodeData = bing.performLookup(location)
-    
+    geocodeData = azure.performLookup(location)
+
     'log response/request
     If (debugMode) Then
-        debugModeRequest = bing.getRequestURI
-        debugModeResponse = bing.getResponseXML
+        debugModeRequest = azure.getRequestURI
+        debugModeResponse = azure.getResponseJSON
     End If
-    
+
     'return the lat/long/confidence
-    bingAddressLookup = geocodeData
-    
+    azureAddressLookup = geocodeData
+
 End Function
 
 'check that all settings are valid
 Function checkSettings()
-   
-    'Check if Bing is selected as geocoder and API key is not blank
-    If Range("GeocoderToUse") = "Bing" Then
-        If Range("bingMapsKey") <> "" Then
-            
+
+    'Check if Azure is selected as geocoder and API key is not blank
+    If Range("GeocoderToUse") = "Azure" Then
+        If Range("azureMapsKey") <> "" Then
+
             'Set debug mode flag if setting is enabled
             If Range("DebugMode") = "On" Then
                 debugMode = True
             Else
                 debugMode = False
             End If
-            
+
             'Ready to Geocode
             checkSettings = True
-        
+
         Else
-            MsgBox "Please enter a Bing Maps Key for geocoding"
+            MsgBox "Please enter an Azure Maps Subscription Key for geocoding"
             'Not ready to geocode
             checkSettings = False
         End If
-        
+
     End If
 
 End Function

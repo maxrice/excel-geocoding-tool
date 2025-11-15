@@ -2,14 +2,17 @@
 Easy to use Geocoding Tool for Excel. Download, enable macros, and add your own location data. Click Geocode All and you're done.
 
 ## Requirements
-* Windows XP/Vista/7 (32bit/64bit) OR Mac OS X 10.5.8 or later (Intel)
-* Excel 2003/2007/2010 OR Excel 2011 for Mac
+* Excel 2003 or later on Windows, Excel 2011 or later on Mac
+* Azure Maps subscription key (get one free at https://azure.microsoft.com/en-us/services/azure-maps/)
 
 ## Installation
-Simply [download](https://github.com/maxrice/excel-geocoding-tool/releases/download/3.6.1/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
+Simply [download](https://github.com/maxrice/excel-geocoding-tool/releases/download/4.0.0/excel-geocoding-tool.xls) and run the Excel file. Make sure to enable macros and enter a proxy address if necessary.
 
 ## Getting Started
-See the excel file for basic instructions.
+1. Get an Azure Maps subscription key from the Azure Portal
+2. Open the Excel file and enter your Azure Maps subscription key
+3. Add your location data
+4. Click "Geocode all"
 
 ## Donate
 Love the tool? Send a [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=max@maxrice.com&item_name=Donation+for+Excel+Geocoding+Tool)!
@@ -17,6 +20,10 @@ Love the tool? Send a [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_xcli
 ---------------
 
 ### Changelog
+
+### 4.0.0 - 2025-11-15
+* Feature - Now uses Azure Maps Search API with JSON responses
+* Tweak - Improved confidence scoring with numerical values from Azure Maps
 
 ### 3.6.1 - 2014-04-27
 * Tweak - You can now geocode up to 65k rows instead of 32k, huzzah!
